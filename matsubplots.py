@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import Grid, ImageGrid
 
 
-def axesgrid(grid=1, size=3, pad=0, image=False, close=False, **kwargs):
+def axesgrid(grid=1, size=3, pad=0, close=False, image_grid=False, return_grid=False, **kwargs):
     if np.isscalar(grid):
         grid = grid, 1
     if np.isscalar(size):
@@ -19,7 +19,7 @@ def axesgrid(grid=1, size=3, pad=0, image=False, close=False, **kwargs):
         plt.close(fig)
     padr = [pad[x] / figsize[x] for x in range(2)]
     rect = padr[0], padr[1], 1 - padr[0] * 2, 1 - padr[1] * 2
-    axs = (ImageGrid if image else Grid)(fig, rect, grid[::-1], axes_pad=pad, **kwargs)
+    axs = (ImageGrid if image_grid else Grid)(fig, rect, grid[::-1], axes_pad=pad, **kwargs)
     for ax in axs:
         if xticks is not None:
             ax.set_xticks(xticks)
@@ -27,17 +27,18 @@ def axesgrid(grid=1, size=3, pad=0, image=False, close=False, **kwargs):
             ax.set_yticks(yticks)
         if frameon is not None:
             ax.set_frame_on(frameon)
+    if not return_grid:
+        axs = np.asarray(axs.axes_row)
     return fig, axs
 
 
 def imagegrid(*args, **kwargs):
-    kwargs['image'] = True
+    kwargs['image_grid'] = True
     kwargs.setdefault('aspect', False)
     return axesgrid(*args, **kwargs)
 
 
 def subplots(grid=1, size=3, pad=0, close=False, label_mode='L', **kwargs):
-    ravel = np.isscalar(grid)
     if np.isscalar(grid):
         grid = grid, 1
     if np.isscalar(size):
@@ -60,8 +61,6 @@ def subplots(grid=1, size=3, pad=0, close=False, label_mode='L', **kwargs):
             ax.set_yticklabels(())
     else:
         raise NotImplementedError(label_mode)
-    if ravel:
-        axs = axs.ravel() if axs.size > 1 else axs[0,0]
     return fig, axs
 
 
