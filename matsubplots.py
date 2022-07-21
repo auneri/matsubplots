@@ -14,23 +14,33 @@ def axesgrid(shape=1, size=3, pad=0, close=False, image_grid=False, return_grid=
     xticks = kwargs.pop('xticks', None)
     yticks = kwargs.pop('yticks', None)
     frameon = kwargs.pop('frameon', None)
+    if image_grid:
+        kwargs.setdefault('cbar_pad', pad[0])
+        kwargs.setdefault('cbar_size', size[0] * 0.1)
+        if kwargs.get('cbar_mode') == 'each':
+            size = size[0] + kwargs.get('cbar_pad') + kwargs.get('cbar_size'), size[1]
     figsize = [size[x] * shape[x] + pad[x] * (shape[x] + 1) for x in range(2)]
+    if image_grid:
+        if kwargs.get('cbar_mode') in ('edge', 'single'):
+            figsize = figsize[0] + kwargs.get('cbar_pad') + kwargs.get('cbar_size'), figsize[1]
     fig = plt.figure(figsize=figsize)
     if close:
         plt.close(fig)
     padr = [pad[x] / figsize[x] for x in range(2)]
     rect = padr[0], padr[1], 1 - padr[0] * 2, 1 - padr[1] * 2
-    axs = (ImageGrid if image_grid else Grid)(fig, rect, shape[::-1], axes_pad=pad, **kwargs)
-    for ax in axs:
+    grid = (ImageGrid if image_grid else Grid)(fig, rect, shape[::-1], axes_pad=pad, **kwargs)
+    axs = np.asarray(grid.axes_row)
+    for ax in axs.ravel():
         if xticks is not None:
             ax.set_xticks(xticks)
         if yticks is not None:
             ax.set_yticks(yticks)
         if frameon is not None:
             ax.set_frame_on(frameon)
-    if not return_grid:
-        axs = np.asarray(axs.axes_row)
-    return fig, axs
+    returned = fig, axs
+    if return_grid:
+        returned += grid,
+    return returned
 
 
 def imagegrid(*args, **kwargs):
