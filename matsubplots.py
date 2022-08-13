@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import Grid, ImageGrid
 
 
-def axesgrid(shape=1, size=3, pad=0, close=False, image_grid=False, return_grid=False, **kwargs):
+def grid(shape=1, size=3, pad=0, close=False, image_grid=False, return_grid=False, **kwargs):
     """Extend mpl_toolkits.axes_grid1.Grid."""
     if np.isscalar(shape):
         shape = shape, 1
@@ -47,7 +47,7 @@ def imagegrid(*args, **kwargs):
     """Extend mpl_toolkits.axes_grid1.ImageGrid."""
     kwargs['image_grid'] = True
     kwargs.setdefault('aspect', False)
-    return axesgrid(*args, **kwargs)
+    return grid(*args, **kwargs)
 
 
 def subplots(shape=1, size=3, pad=0, close=False, label_mode='L', **kwargs):
