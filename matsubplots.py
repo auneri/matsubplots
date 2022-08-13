@@ -46,7 +46,8 @@ def grid(shape=1, size=3, pad=0, close=False, image_grid=False, return_grid=Fals
 def imagegrid(*args, **kwargs):
     """Extend mpl_toolkits.axes_grid1.ImageGrid."""
     kwargs['image_grid'] = True
-    kwargs.setdefault('aspect', False)
+    kwargs.setdefault('xticks', ())
+    kwargs.setdefault('yticks', ())
     return grid(*args, **kwargs)
 
 
