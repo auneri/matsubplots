@@ -82,7 +82,7 @@ def subplots(shape=1, size=3, pad=0, close=False, label_mode='L', squeeze=True, 
     if cbar_mode == 'single':
         axs, cax = axs[:,:-1], axs[0,-1]
         for ax in axs.ravel():
-            setattr(ax, 'cax', cax)
+            ax.cax = cax
         cax.set_position([cbar_size / figsize[0] if i == 2 else x for i, x in enumerate(cax.get_position().bounds)])
     if squeeze:
         axs = axs[0,0] if axs.size == 1 else np.squeeze(axs)
