@@ -77,13 +77,15 @@ def subplots(shape=1, size=3, pad=0, close=False, label_mode='L', squeeze=True, 
             ax.set_xticklabels(())
         for ax in axs[:,1:].ravel():
             ax.set_yticklabels(())
-    else:
+    elif label_mode:
         raise NotImplementedError(label_mode)
     if cbar_mode == 'single':
         axs, cax = axs[:,:-1], axs[0,-1]
         for ax in axs.ravel():
             ax.cax = cax
         cax.set_position([cbar_size / figsize[0] if i == 2 else x for i, x in enumerate(cax.get_position().bounds)])
+    elif cbar_mode:
+        raise NotImplementedError(cbar_mode)
     if squeeze:
         axs = axs[0,0] if axs.size == 1 else np.squeeze(axs)
     return fig, axs
