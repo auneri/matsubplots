@@ -20,6 +20,7 @@ setuptools.setup(
     license='MIT',
     license_files=('LICENSE.md',),
     classifiers=[
+        'Framework :: Matplotlib',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3'],
