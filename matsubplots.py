@@ -113,10 +113,11 @@ def subplots(shape=1, size=3, pad=0, close=False, label_mode='L', squeeze=True, 
     elif label_mode:
         raise NotImplementedError(label_mode)
     if cbar_mode == 'single':
-        axs, cax = axs[:,:-1], axs[0,-1]
-        for ax in axs.ravel():
-            ax.cax = cax
-        cax.set_position([cbar_size / figsize[0] if i == 2 else x for i, x in enumerate(cax.get_position().bounds)])
+        axs, caxs = axs[:,:-1], axs[:,-1]
+        for ax1, cax in zip(axs, caxs):
+            cax.set_position([cbar_size / figsize[0] if i == 2 else x for i, x in enumerate(cax.get_position().bounds)])
+            for ax2 in ax1:
+                ax2.cax = cax
     elif cbar_mode:
         raise NotImplementedError(cbar_mode)
     if squeeze:
