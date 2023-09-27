@@ -100,7 +100,7 @@ def subplots(shape=1, size=3, pad=0, close=False, label_mode='L', squeeze=True, 
     fig = plt.figure(figsize=figsize)
     if close:
         plt.close(fig)
-    axs = np.empty(shape[::-1], dtype=np.object)
+    axs = np.empty(shape[::-1], dtype=object)
     for i in range(shape[0]):
         for j in range(shape[1]):
             offset = [pad[x] + (i,j)[x] * (size[x] + pad[x]) for x in range(2)]
