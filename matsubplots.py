@@ -1,9 +1,11 @@
+import contextlib
+
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import Grid, ImageGrid
 
 
-def grid(shape=1, size=3, pad=0, close=False, image_grid=False, return_grid=False, **kwargs):
+def grid(shape=1, size=3, pad=0, close=False, ioff=False, image_grid=False, return_grid=False, **kwargs):
     """Extend mpl_toolkits.axes_grid1.Grid."""
     if np.isscalar(shape):
         shape = shape, 1
@@ -23,7 +25,8 @@ def grid(shape=1, size=3, pad=0, close=False, image_grid=False, return_grid=Fals
     if image_grid:
         if kwargs.get('cbar_mode') in ('edge', 'single'):
             figsize = figsize[0] + kwargs.get('cbar_pad') + kwargs.get('cbar_size'), figsize[1]
-    fig = plt.figure(figsize=figsize)
+    with plt.ioff() if ioff else contextlib.nullcontext():
+        fig = plt.figure(figsize=figsize)
     if close:
         plt.close(fig)
     padr = [pad[x] / figsize[x] for x in range(2)]
@@ -84,7 +87,7 @@ def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=No
             ax.get_figure().colorbar(im, cax=ax.cax)
 
 
-def subplots(shape=1, size=3, pad=0, close=False, label_mode='L', squeeze=True, **kwargs):
+def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', squeeze=True, **kwargs):
     """Extend matplotlib.pyplot.subplots."""
     if np.isscalar(shape):
         shape = shape, 1
@@ -97,7 +100,8 @@ def subplots(shape=1, size=3, pad=0, close=False, label_mode='L', squeeze=True, 
     if cbar_mode == 'single':
         shape = shape[0] + 1, shape[1]
     figsize = [size[x] * shape[x] + pad[x] * (shape[x] + 1) for x in range(2)]
-    fig = plt.figure(figsize=figsize)
+    with plt.ioff() if ioff else contextlib.nullcontext():
+        fig = plt.figure(figsize=figsize)
     if close:
         plt.close(fig)
     axs = np.empty(shape[::-1], dtype=object)
