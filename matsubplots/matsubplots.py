@@ -5,6 +5,43 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import Grid, ImageGrid
 
 
+def add_axes_inches(fig, size, offset=0, origin='middle center', **kwargs):
+    figsize = fig.get_size_inches()
+    if np.isscalar(size):
+        size = np.repeat(size, 2)
+    elif len(size) != 2:
+        raise NotImplementedError(size)
+    if np.isscalar(offset):
+        offset = np.repeat(offset, 2)
+    elif len(offset) != 2:
+        raise NotImplementedError(offset)
+    origin = origin.split()
+    if len(origin) != 2:
+        raise NotImplementedError(origin)
+    if origin[1] == 'left':
+        left = offset[0]
+    elif origin[1] == 'right':
+        left = figsize[0] - size[0] - offset[0]
+    elif origin[1] == 'center':
+        left = (figsize[0] - size[0]) / 2 + offset[0]
+    else:
+        raise NotImplementedError(origin[1])
+    if origin[0] == 'bottom':
+        bottom = offset[1]
+    elif origin[0] == 'top':
+        bottom = figsize[1] - size[1] - offset[1]
+    elif origin[0] == 'middle':
+        bottom = (figsize[1] - size[1]) / 2 + offset[1]
+    else:
+        raise NotImplementedError(origin[0])
+    width, height = size
+    left /= figsize[0]
+    bottom /= figsize[1]
+    width /= figsize[0]
+    height /= figsize[1]
+    return fig.add_axes((left, bottom, width, height), **kwargs)
+
+
 def grid(shape=1, size=3, pad=0, close=False, ioff=False, image_grid=False, return_grid=False, **kwargs):
     """Extend mpl_toolkits.axes_grid1.Grid."""
     if np.isscalar(shape):
@@ -108,7 +145,7 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', sq
     for i in range(shape[0]):
         for j in range(shape[1]):
             offset = [pad[x] + (i,j)[x] * (size[x] + pad[x]) for x in range(2)]
-            axs[j,i] = _add_axes_inches(fig, size, offset, origin='top left', **kwargs)
+            axs[j,i] = add_axes_inches(fig, size, offset, origin='top left', **kwargs)
     if label_mode == 'L':
         for ax in axs[:-1,:].ravel():
             ax.set_xticklabels(())
@@ -127,40 +164,3 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', sq
     if squeeze:
         axs = axs[0,0] if axs.size == 1 else np.squeeze(axs)
     return fig, axs
-
-
-def _add_axes_inches(fig, size, offset=0, origin='middle center', **kwargs):
-    figsize = fig.get_size_inches()
-    if np.isscalar(size):
-        size = np.repeat(size, 2)
-    elif len(size) != 2:
-        raise NotImplementedError(size)
-    if np.isscalar(offset):
-        offset = np.repeat(offset, 2)
-    elif len(offset) != 2:
-        raise NotImplementedError(offset)
-    origin = origin.split()
-    if len(origin) != 2:
-        raise NotImplementedError(origin)
-    if origin[1] == 'left':
-        left = offset[0]
-    elif origin[1] == 'right':
-        left = figsize[0] - size[0] - offset[0]
-    elif origin[1] == 'center':
-        left = (figsize[0] - size[0]) / 2 + offset[0]
-    else:
-        raise NotImplementedError(origin[1])
-    if origin[0] == 'bottom':
-        bottom = offset[1]
-    elif origin[0] == 'top':
-        bottom = figsize[1] - size[1] - offset[1]
-    elif origin[0] == 'middle':
-        bottom = (figsize[1] - size[1]) / 2 + offset[1]
-    else:
-        raise NotImplementedError(origin[0])
-    width, height = size
-    left /= figsize[0]
-    bottom /= figsize[1]
-    width /= figsize[0]
-    height /= figsize[1]
-    return fig.add_axes((left, bottom, width, height), **kwargs)
