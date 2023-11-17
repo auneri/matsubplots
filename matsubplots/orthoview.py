@@ -150,6 +150,9 @@ class OrthoViewStatic(OrthoView):
             widget.observe(update, names='value')
 
     def _ipython_display_(self):
-        import ipywidgets
         from IPython.display import display
-        return display(ipywidgets.VBox((self.output, ipywidgets.HBox(self.slices), self.clim)))
+        display(self.widget())
+
+    def widget(self):
+        import ipywidgets
+        return ipywidgets.VBox((self.output, ipywidgets.HBox(self.slices), self.clim))
