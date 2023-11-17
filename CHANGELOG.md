@@ -5,7 +5,13 @@ and the format of this document is based on [Keep a Changelog](http://keepachang
 
 ## Unreleased
 
-See [individual commits](https://github.com/auneri/matsubplots/compare/v1.0.0...main) for detailed changes.
+See [individual commits](https://github.com/auneri/matsubplots/compare/v1.0.1...main) for detailed changes.
+
+## 1.0.1 -- 2024-11-17
+
+* Fix package version.
+* Add PyPI package badge.
+* Include release instructions.
 
 ## 1.0.0 -- 2024-11-16
 
