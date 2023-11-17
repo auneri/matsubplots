@@ -67,7 +67,11 @@ class OrthoView:
                 axs[i].axvline(image.shape[y]//2, lw=1, c=self.colors[y])]
                 for i, (x,y) in enumerate(self.indices)]
 
-    def scroll(self, index, value):
+    def scroll(self, i, j, k):
+        for index, value in enumerate((i, j, k)):
+            self.scrolli(index, value)
+
+    def scrolli(self, index, value):
         self.axs[index].images[0].set_data(np.rollaxis(self.image, index)[value])
         if self.crosshairs is not None:
             for i, alignment in zip(self.indices[index], self.alignments[index]):
@@ -107,7 +111,7 @@ class OrthoViewInteractive(OrthoView):
         for i, ax in enumerate(self.axs):
             if self.pressed[0] is not None and event.inaxes is ax:
                 for j, index in enumerate(self.indices[i]):
-                    self.scroll(index, round(getattr(event, 'ydata' if j == 0 else 'xdata')))
+                    self.scrolli(index, round(getattr(event, 'ydata' if j == 0 else 'xdata')))
             elif self.pressed[1] is not None and event.inaxes is ax:
                 vmin, vmax = self.axs[0].images[0].get_clim()
                 win = vmax - vmin
@@ -143,7 +147,7 @@ class OrthoViewStatic(OrthoView):
                 for ax in axs:
                     ax.images[0].set_clim(change['new'])
             elif change['owner'] in self.slices:
-                self.scroll(self.slices.index(change['owner']), change['new'])
+                self.scrolli(self.slices.index(change['owner']), change['new'])
             display(axs[0].get_figure())
 
         for widget in self.slices + [self.clim]:
@@ -152,6 +156,10 @@ class OrthoViewStatic(OrthoView):
     def _ipython_display_(self):
         from IPython.display import display
         display(self.widget())
+
+    def scroll(self, i, j, k):
+        for index, value in enumerate((i, j, k)):
+            self.slices[index].value = value
 
     def widget(self):
         import ipywidgets
