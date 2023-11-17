@@ -2,14 +2,14 @@ import numpy as np
 from matplotlib.backend_bases import MouseButton
 
 
-def orthoview(axs, image, *args, backend=None, crosshairs=True, **kwargs):
+def orthoview(axs, image, *args, backend=None, **kwargs):
     orthoview_base(axs, image, *args, **kwargs)
     if backend is None:
         pass
     elif backend.lower() == 'interactive':
-        return OrthoViewInteractive(axs, image, crosshairs)
+        return OrthoViewInteractive(axs, image)
     elif backend.lower() == 'static':
-        return OrthoViewStatic(axs, image, crosshairs)
+        return OrthoViewStatic(axs, image)
     else:
         raise NotImplementedError(backend)
 
@@ -53,19 +53,16 @@ class OrthoView:
     colors = '#ff0000', '#00ff00', '#ffff00'
     indices = (1, 2), (0, 2), (0, 1)
 
-    def __init__(self, axs, image, crosshairs=True):
+    def __init__(self, axs, image):
         self.axs = axs
         self.image = image
-        self.crosshairs = None
-        if crosshairs:
-            for ax, color in zip(axs, self.colors):
-                for spine in ax.spines.values():
-                    spine.set_linewidth(2)
-                    spine.set_color(color)
-            self.crosshairs = [[
-                axs[i].axhline(image.shape[x]//2, lw=1, c=self.colors[x]),
-                axs[i].axvline(image.shape[y]//2, lw=1, c=self.colors[y])]
-                for i, (x,y) in enumerate(self.indices)]
+        self.crosshairs = [[
+            axs[i].axhline(image.shape[x]//2, lw=1, c=self.colors[x]),
+            axs[i].axvline(image.shape[y]//2, lw=1, c=self.colors[y])]
+            for i, (x,y) in enumerate(self.indices)]
+        for x in self.crosshairs:
+            for y in x:
+                y.set_visible(False)
 
     def scroll(self, i, j, k):
         for index, value in enumerate((i, j, k)):
@@ -73,9 +70,8 @@ class OrthoView:
 
     def scrolli(self, index, value):
         self.axs[index].images[0].set_data(np.rollaxis(self.image, index)[value])
-        if self.crosshairs is not None:
-            for i, alignment in zip(self.indices[index], self.alignments[index]):
-                getattr(self.crosshairs[i][alignment], 'set_ydata' if alignment == 0 else 'set_xdata')([value, value])
+        for i, alignment in zip(self.indices[index], self.alignments[index]):
+            getattr(self.crosshairs[i][alignment], 'set_ydata' if alignment == 0 else 'set_xdata')([value, value])
 
 
 class OrthoViewInteractive(OrthoView):
@@ -98,10 +94,15 @@ class OrthoViewInteractive(OrthoView):
         self.axs[0].get_figure().show()
 
     def on_press(self, event):
-        if event.inaxes in self.axs and event.button == MouseButton.LEFT:
-            self.pressed[0] = event
-        if event.inaxes in self.axs and event.button == MouseButton.RIGHT:
-            self.pressed[1] = event
+        if event.inaxes in self.axs:
+            if event.dblclick:
+                for x in self.crosshairs:
+                    for y in x:
+                        y.set_visible(not y.get_visible())
+            elif event.button == MouseButton.LEFT:
+                self.pressed[0] = event
+            elif event.button == MouseButton.RIGHT:
+                self.pressed[1] = event
         self.on_motion(event)
 
     def on_release(self, _):
@@ -135,22 +136,27 @@ class OrthoViewStatic(OrthoView):
         except ModuleNotFoundError as exception:
             raise RuntimeError('ipywidgets is required to provide interactivity with static matplotlib backends') from exception
         super().__init__(axs, image, *args, **kwargs)
-        self.slices = [ipywidgets.IntSlider(description=x, value=image.shape[i]//2, min=0, max=image.shape[i]-1) for i, x in enumerate('ijk')]
-        self.clim = ipywidgets.FloatRangeSlider(description='c', value=axs[0].images[0].get_clim(), min=np.min(image), max=np.max(image))
-        self.output = ipywidgets.Output()
-        with self.output:
+        self.wslices = [ipywidgets.IntSlider(description=x, value=image.shape[i]//2, min=0, max=image.shape[i]-1) for i, x in enumerate('ijk')]
+        self.wclim = ipywidgets.FloatRangeSlider(description='clim', value=axs[0].images[0].get_clim(), min=np.min(image), max=np.max(image))
+        self.wcrosshairs = ipywidgets.Checkbox(description='crosshairs', value=self.crosshairs[0][0].get_visible())
+        self.woutput = ipywidgets.Output()
+        with self.woutput:
             display(axs[0].get_figure())
 
-        @self.output.capture(clear_output=True, wait=True)
+        @self.woutput.capture(clear_output=True, wait=True)
         def update(change):
-            if change['owner'] is self.clim:
+            if change['owner'] is self.wclim:
                 for ax in axs:
                     ax.images[0].set_clim(change['new'])
-            elif change['owner'] in self.slices:
-                self.scrolli(self.slices.index(change['owner']), change['new'])
+            elif change['owner'] is self.wcrosshairs:
+                for x in self.crosshairs:
+                    for y in x:
+                        y.set_visible(change['new'])
+            elif change['owner'] in self.wslices:
+                self.scrolli(self.wslices.index(change['owner']), change['new'])
             display(axs[0].get_figure())
 
-        for widget in self.slices + [self.clim]:
+        for widget in self.wslices + [self.wclim, self.wcrosshairs]:
             widget.observe(update, names='value')
 
     def _ipython_display_(self):
@@ -159,8 +165,8 @@ class OrthoViewStatic(OrthoView):
 
     def scroll(self, i, j, k):
         for index, value in enumerate((i, j, k)):
-            self.slices[index].value = value
+            self.wslices[index].value = value
 
     def widget(self):
         import ipywidgets
-        return ipywidgets.VBox((self.output, ipywidgets.HBox(self.slices), self.clim))
+        return ipywidgets.VBox((self.woutput, ipywidgets.HBox(self.wslices), ipywidgets.HBox((self.wclim, self.wcrosshairs))))
