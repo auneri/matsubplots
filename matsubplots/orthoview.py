@@ -1,7 +1,20 @@
 import numpy as np
+from matplotlib.backend_bases import MouseButton
 
 
-def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=None, slab_func=np.mean, **kwargs):
+def orthoview(axs, image, *args, backend=None, crosshairs=True, **kwargs):
+    orthoview_base(axs, image, *args, **kwargs)
+    if backend is None:
+        pass
+    elif backend.lower() == 'interactive':
+        return OrthoViewInteractive(axs, image, crosshairs)
+    elif backend.lower() == 'static':
+        return OrthoViewStatic(axs, image, crosshairs)
+    else:
+        raise NotImplementedError(backend)
+
+
+def orthoview_base(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=None, slab_func=np.mean, **kwargs):
     axs = np.asarray(axs)
     image = np.asarray(image)
     spacing = np.asarray(spacing)
@@ -32,3 +45,111 @@ def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=No
                 bounds = ax.cax.get_position().bounds
                 ax.cax.set_position((bounds[0] - left, bounds[1], bounds[2], bounds[3]))
             ax.get_figure().colorbar(im, cax=ax.cax)
+
+
+class OrthoView:
+
+    alignments = (0, 0), (0, 1), (1, 1)
+    colors = '#ff0000', '#00ff00', '#ffff00'
+    indices = (1, 2), (0, 2), (0, 1)
+
+    def __init__(self, axs, image, crosshairs=True):
+        self.axs = axs
+        self.image = image
+        self.crosshairs = None
+        if crosshairs:
+            for ax, color in zip(axs, self.colors):
+                for spine in ax.spines.values():
+                    spine.set_linewidth(2)
+                    spine.set_color(color)
+            self.crosshairs = [[
+                axs[i].axhline(image.shape[x]//2, lw=1, c=self.colors[x]),
+                axs[i].axvline(image.shape[y]//2, lw=1, c=self.colors[y])]
+                for i, (x,y) in enumerate(self.indices)]
+
+    def scroll(self, index, value):
+        self.axs[index].images[0].set_data(np.rollaxis(self.image, index)[value])
+        if self.crosshairs is not None:
+            for i, alignment in zip(self.indices[index], self.alignments[index]):
+                getattr(self.crosshairs[i][alignment], 'set_ydata' if alignment == 0 else 'set_xdata')([value, value])
+
+
+class OrthoViewInteractive(OrthoView):
+
+    def __init__(self, axs, *args, **kwargs):
+        super().__init__(axs, *args, **kwargs)
+        self.pressed = [None, None]
+        self.signals = [
+            axs[0].get_figure().canvas.mpl_connect('button_press_event', self.on_press),
+            axs[0].get_figure().canvas.mpl_connect('button_release_event', self.on_release),
+            axs[0].get_figure().canvas.mpl_connect('motion_notify_event', self.on_motion)]
+        axs[0].get_figure().canvas.header_visible = False
+        axs[0].get_figure().canvas.footer_visible = False
+
+    def __del__(self):
+        for signal in self.signals:
+            self.axs[0].get_figure().canvas.mpl_disconnect(signal)
+
+    def _ipython_display_(self):
+        self.axs[0].get_figure().show()
+
+    def on_press(self, event):
+        if event.inaxes in self.axs and event.button == MouseButton.LEFT:
+            self.pressed[0] = event
+        if event.inaxes in self.axs and event.button == MouseButton.RIGHT:
+            self.pressed[1] = event
+        self.on_motion(event)
+
+    def on_release(self, _):
+        self.pressed[:] = None, None
+
+    def on_motion(self, event):
+        for i, ax in enumerate(self.axs):
+            if self.pressed[0] is not None and event.inaxes is ax:
+                for j, index in enumerate(self.indices[i]):
+                    self.scroll(index, round(getattr(event, 'ydata' if j == 0 else 'xdata')))
+            elif self.pressed[1] is not None and event.inaxes is ax:
+                vmin, vmax = self.axs[0].images[0].get_clim()
+                win = vmax - vmin
+                lvl = vmin + (win / 2)
+                win += 0.1 * (event.x - self.pressed[1].x) / self.axs[0].images[0].get_size()[0]
+                lvl += 0.1 * (event.y - self.pressed[1].y) / self.axs[0].images[0].get_size()[1]
+                vmin = lvl - (win / 2)
+                vmax = lvl + (win / 2)
+                for ax in self.axs:
+                    ax.images[0].set_clim((vmin, vmax))
+        if any(x is not None for x in self.pressed) and event.inaxes in self.axs:
+            self.axs[0].get_figure().canvas.draw_idle()
+
+
+class OrthoViewStatic(OrthoView):
+
+    def __init__(self, axs, image, *args, **kwargs):
+        try:
+            import ipywidgets
+            from IPython.display import display
+        except ModuleNotFoundError as exception:
+            raise RuntimeError('ipywidgets is required to provide interactivity with static matplotlib backends') from exception
+        super().__init__(axs, image, *args, **kwargs)
+        self.slices = [ipywidgets.IntSlider(description=x, value=image.shape[i]//2, min=0, max=image.shape[i]-1) for i, x in enumerate('ijk')]
+        self.clim = ipywidgets.FloatRangeSlider(description='c', value=axs[0].images[0].get_clim(), min=np.min(image), max=np.max(image))
+        self.output = ipywidgets.Output()
+        with self.output:
+            display(axs[0].get_figure())
+
+        @self.output.capture(clear_output=True, wait=True)
+        def update(change):
+            if change['owner'] is self.clim:
+                for ax in axs:
+                    ax.images[0].set_clim(change['new'])
+            elif change['owner'] in self.slices:
+                self.scroll(self.slices.index(change['owner']), change['new'])
+            display(axs[0].get_figure())
+
+        for widget in self.slices + [self.clim]:
+            widget.observe(update, names='value')
+
+    def _ipython_display_(self):
+        import ipywidgets
+        from IPython.display import display
+        return display(ipywidgets.VBox((self.output, ipywidgets.HBox(self.slices), self.clim)))
