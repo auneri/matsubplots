@@ -16,3 +16,7 @@
     conda activate base
     twine upload dist/*
     ```
+
+3. Upload new package to conda-forge
+    * make a pull request to [matsubplots-feedstock](https://github.com/conda-forge/matsubplots-feedstock)
+    * update `version` (should match `__version__`) and `hash` (should match PyPI) in `recipe/meta.yaml`
