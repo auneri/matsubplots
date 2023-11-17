@@ -1,6 +1,8 @@
 from .matsubplots import (  # noqa: F401
     grid,
     imagegrid,
-    orthoview,
     subplots,
+)
+from .orthoview import (  # noqa: F401
+    orthoview,
 )
