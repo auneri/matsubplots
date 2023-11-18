@@ -5,7 +5,12 @@ and the format of this document is based on [Keep a Changelog](http://keepachang
 
 ## Unreleased
 
-See [individual commits](https://github.com/auneri/matsubplots/compare/v1.0.1...main) for detailed changes.
+See [individual commits](https://github.com/auneri/matsubplots/compare/v1.0.2...main) for detailed changes.
+
+## 1.0.2 -- 2024-11-18
+
+* Organize example notebooks.
+* Add conda-forge package badge.
 
 ## 1.0.1 -- 2024-11-17
 
