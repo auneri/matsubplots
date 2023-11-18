@@ -10,3 +10,5 @@ Better subplots for [matplotlib](https://matplotlib.org).
 ## Getting started
 
 Install using `pip install matsubplots` or `conda install -c conda-forge matsubplots`.
+
+See [example notebooks](https://github.com/auneri/matsubplots/tree/main/examples) for basic instructions.
