@@ -101,7 +101,7 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', sq
         pad = np.repeat(pad, 2)
     cbar_mode = kwargs.pop('cbar_mode', None)
     cbar_size = kwargs.pop('cbar_size', size[0] * 0.1)
-    if cbar_mode == 'single':
+    if cbar_mode == 'edge':
         shape = shape[0] + 1, shape[1]
     figsize = [size[x] * shape[x] + pad[x] * (shape[x] + 1) for x in range(2)]
     with plt.ioff() if ioff else contextlib.nullcontext():
@@ -120,7 +120,7 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', sq
             ax.set_yticklabels(())
     elif label_mode:
         raise NotImplementedError(label_mode)
-    if cbar_mode == 'single':
+    if cbar_mode == 'edge':
         axs, caxs = axs[:,:-1], axs[:,-1]
         for ax1, cax in zip(axs, caxs):
             cax.set_position([cbar_size / figsize[0] if i == 2 else x for i, x in enumerate(cax.get_position().bounds)])
