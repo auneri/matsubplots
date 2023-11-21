@@ -5,7 +5,11 @@ and the format of this document is based on [Keep a Changelog](http://keepachang
 
 ## Unreleased
 
-See [individual commits](https://github.com/auneri/matsubplots/compare/v1.0.2...main) for detailed changes.
+See [individual commits](https://github.com/auneri/matsubplots/compare/v1.0.3...main) for detailed changes.
+
+## 1.0.3 -- 2024-11-21
+
+* Fix cbar_mode option for subplots
 
 ## 1.0.2 -- 2024-11-18
 
