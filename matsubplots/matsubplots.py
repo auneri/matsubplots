@@ -46,11 +46,12 @@ def grid(shape=1, size=3, pad=0, close=False, ioff=False, image_grid=False, retu
     """Extend mpl_toolkits.axes_grid1.Grid."""
     shape_scalar = np.isscalar(shape)
     if shape_scalar:
-        shape = shape, 1
+        shape = 1, shape
     if np.isscalar(size):
         size = np.repeat(size, 2)
     if np.isscalar(pad):
         pad = np.repeat(pad, 2)
+    shape, size, pad = shape[::-1], size[::-1], pad[::-1]
     xticks = kwargs.pop('xticks', None)
     yticks = kwargs.pop('yticks', None)
     frameon = kwargs.pop('frameon', None)
@@ -98,11 +99,12 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', **
     """Extend matplotlib.pyplot.subplots."""
     shape_scalar = np.isscalar(shape)
     if shape_scalar:
-        shape = shape, 1
+        shape = 1, shape
     if np.isscalar(size):
         size = np.repeat(size, 2)
     if np.isscalar(pad):
         pad = np.repeat(pad, 2)
+    shape, size, pad = shape[::-1], size[::-1], pad[::-1]
     cbar_mode = kwargs.pop('cbar_mode', None)
     cbar_size = kwargs.pop('cbar_size', size[0] * 0.1)
     if cbar_mode == 'edge':
