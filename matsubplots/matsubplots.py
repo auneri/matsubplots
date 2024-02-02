@@ -44,7 +44,8 @@ def add_axes_inches(fig, size, offset=0, origin='middle center', **kwargs):
 
 def grid(shape=1, size=3, pad=0, close=False, ioff=False, image_grid=False, return_grid=False, **kwargs):
     """Extend mpl_toolkits.axes_grid1.Grid."""
-    if np.isscalar(shape):
+    shape_scalar = np.isscalar(shape)
+    if shape_scalar:
         shape = shape, 1
     if np.isscalar(size):
         size = np.repeat(size, 2)
@@ -77,6 +78,8 @@ def grid(shape=1, size=3, pad=0, close=False, ioff=False, image_grid=False, retu
             ax.set_yticks(yticks)
         if frameon is not None:
             ax.set_frame_on(frameon)
+    if shape_scalar:
+        axs = axs[0,0] if axs.size == 1 else np.squeeze(axs)
     returned = fig, axs
     if return_grid:
         returned += grid,
@@ -91,9 +94,10 @@ def imagegrid(*args, **kwargs):
     return grid(*args, **kwargs)
 
 
-def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', squeeze=True, **kwargs):
+def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', **kwargs):
     """Extend matplotlib.pyplot.subplots."""
-    if np.isscalar(shape):
+    shape_scalar = np.isscalar(shape)
+    if shape_scalar:
         shape = shape, 1
     if np.isscalar(size):
         size = np.repeat(size, 2)
@@ -128,6 +132,6 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', sq
                 ax2.cax = cax
     elif cbar_mode:
         raise NotImplementedError(cbar_mode)
-    if squeeze:
+    if shape_scalar:
         axs = axs[0,0] if axs.size == 1 else np.squeeze(axs)
     return fig, axs
