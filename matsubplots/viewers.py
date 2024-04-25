@@ -2,19 +2,7 @@ import numpy as np
 from matplotlib.backend_bases import MouseButton
 
 
-def orthoview(axs, image, *args, backend=None, **kwargs):
-    orthoview_base(axs, image, *args, **kwargs)
-    if backend is None:
-        pass
-    elif backend.lower() == 'interactive':
-        return OrthoViewInteractive(axs, image)
-    elif backend.lower() == 'static':
-        return OrthoViewStatic(axs, image)
-    else:
-        raise NotImplementedError(backend)
-
-
-def orthoview_base(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=None, slab_func=np.mean, **kwargs):
+def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=None, slab_func=np.mean, backend=None, **kwargs):
     axs = np.asarray(axs)
     image = np.asarray(image)
     spacing = np.asarray(spacing)
@@ -45,6 +33,14 @@ def orthoview_base(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickne
                 bounds = ax.cax.get_position().bounds
                 ax.cax.set_position((bounds[0] - left, bounds[1], bounds[2], bounds[3]))
             ax.get_figure().colorbar(im, cax=ax.cax)
+    if backend is None:
+        pass
+    elif backend.lower() == 'interactive':
+        return OrthoViewInteractive(axs, image)
+    elif backend.lower() == 'static':
+        return OrthoViewStatic(axs, image)
+    else:
+        raise NotImplementedError(backend)
 
 
 class OrthoView:
