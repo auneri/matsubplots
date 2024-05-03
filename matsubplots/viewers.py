@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib.backend_bases import MouseButton
 
 
-def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=None, slab_func=np.mean, backend=None, **kwargs):
+def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=None, slab_func=np.mean, reposition=True, backend=None, **kwargs):
     axs = np.asarray(axs)
     image = np.asarray(image)
     spacing = np.asarray(spacing)
@@ -10,7 +10,8 @@ def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=No
         raise ValueError('Expected a 3D image, 3 axes, and 3 values for spacing')
     if ijk is not None and xyz is not None:
         raise ValueError('Cannot specify ijk and xyz at the same time')
-    left = 0
+    bounds = []
+    cbounds = []
     for i, ax in enumerate(axs.ravel()):
         if xyz is not None:
             j = round(xyz[::-1][i] / spacing[::-1][i] + (image.shape[i] - 1) / 2)
@@ -23,16 +24,51 @@ def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=No
         j1 = j - (-thickness // 2)
         slice_ = slab_func(np.rollaxis(image, i)[j0:j1], axis=0)
         aspect = np.divide(*spacing[::-1][np.arange(spacing.size) != i])
-        bounds = ax.get_position().bounds
-        width = bounds[2] * (slice_.shape[1] / slice_.shape[0]) / aspect
-        ax.set_position((bounds[0] - left, bounds[1], width, bounds[3]))
+        bounds.append([])
+        bounds[-1].append(ax.get_position().bounds)
         im = ax.imshow(slice_, aspect=aspect, **kwargs)
-        left += bounds[2] - width
+        bounds[-1].append(ax.get_position().bounds)
         if hasattr(ax, 'cax'):
-            if ax is axs.ravel()[-1]:
-                bounds = ax.cax.get_position().bounds
-                ax.cax.set_position((bounds[0] - left, bounds[1], bounds[2], bounds[3]))
             ax.get_figure().colorbar(im, cax=ax.cax)
+            cbounds.append(ax.cax.get_position().bounds)
+    if reposition:
+        _, _, w00, _ = bounds[0][0]
+        l01, b01, w01, h01 = bounds[0][1]
+        l0, b0, w0, h0 = l01, b01, w01, h01
+        _, _, w10, _ = bounds[1][0]
+        l11, b11, w11, h11 = bounds[1][1]
+        l1, b1, w1, h1 = l11, b11, w11, h11
+        _, _, w20, _ = bounds[2][0]
+        l21, b21, w21, h21 = bounds[2][1]
+        l2, b2, w2, h2 = l21, b21, w21, h21
+        lshift = (w00 - w01) / 2
+        lshift += (w10 - w11) / 2
+        if w1 < w0:
+            w0 = w1
+            h0 *= w0 / w01
+            b0 += (h01 - h0) / 2
+            lshift += w01 - w0
+            axs[0].set_position((l0, b0, w0, h0))
+            axs[1].set_position((l1 - lshift, b1, w1, h1))
+        else:
+            w1 = w0
+            h1 *= w1 / w11
+            b1 += (h11 - h1) / 2
+            axs[1].set_position((l1 - lshift, b1, w1, h1))
+            lshift += w11 - w1
+        lshift += (w10 - w11) / 2
+        w2 *= h1 / h2
+        h2 = h1
+        b2 = b1
+        lshift += (w20 - w21) / 2
+        axs[2].set_position((l2 - lshift, b2, w2, h2))
+        lshift += (w20 - w21) / 2
+        lshift += w21 - w2
+        if cbounds:
+            cl, cb, cw, ch = cbounds[2]
+            ch2 = max(h0, h1, h2)
+            cb2 = cb + (ch - ch2) / 2
+            ax.cax.set_position((cl - lshift, cb2, cw, ch2))
     if backend is None:
         pass
     elif backend.lower() == 'interactive':
