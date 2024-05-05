@@ -11,7 +11,6 @@ def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=No
     if ijk is not None and xyz is not None:
         raise ValueError('Cannot specify ijk and xyz at the same time')
     bounds = []
-    cbounds = []
     for i, ax in enumerate(axs.ravel()):
         if xyz is not None:
             j = round(xyz[::-1][i] / spacing[::-1][i] + (image.shape[i] - 1) / 2)
@@ -30,7 +29,6 @@ def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=No
         bounds[-1].append(ax.get_position().bounds)
         if hasattr(ax, 'cax'):
             ax.get_figure().colorbar(im, cax=ax.cax)
-            cbounds.append(ax.cax.get_position().bounds)
     if reposition:
         _, _, w00, _ = bounds[0][0]
         l01, b01, w01, h01 = bounds[0][1]
@@ -64,11 +62,11 @@ def orthoview(axs, image, spacing=(1,1,1), xyz=None, ijk=None, slab_thickness=No
         axs[2].set_position((l2 - lshift, b2, w2, h2))
         lshift += (w20 - w21) / 2
         lshift += w21 - w2
-        if cbounds:
-            cl, cb, cw, ch = cbounds[2]
+        if hasattr(axs[-1], 'cax'):
+            cl, cb, cw, ch = axs[-1].cax.get_position().bounds
             ch2 = max(h0, h1, h2)
             cb2 = cb + (ch - ch2) / 2
-            ax.cax.set_position((cl - lshift, cb2, cw, ch2))
+            axs[-1].cax.set_position((cl - lshift, cb2, cw, ch2))
     if backend is None:
         pass
     elif backend.lower() == 'interactive':
