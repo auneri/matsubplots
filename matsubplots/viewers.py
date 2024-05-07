@@ -51,9 +51,12 @@ class OrthoView:
     def crosshairs(self, toggle=None):
         if toggle is None:
             toggle = not self._crosshairs[0][0].get_visible()
+        default_color = self.axs[0].get_xaxis().get_label().get_color()
         for i, crosshairs in enumerate(self._crosshairs):
             for line in crosshairs:
                 line.set_visible(toggle)
+            for spine in self.axs[i].spines.values():
+                spine.set_edgecolor(self.colors[i] if toggle else default_color)
 
     def ijk(self, i, j, k, crosshairs=None):
         for index, value in enumerate((i, j, k)):
