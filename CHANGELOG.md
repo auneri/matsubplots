@@ -5,13 +5,17 @@ and the format of this document is based on [Keep a Changelog](http://keepachang
 
 ## Unreleased
 
-See [individual commits](https://github.com/auneri/matsubplots/compare/v1.1.1...main) for detailed changes.
+See [individual commits](https://github.com/auneri/matsubplots/compare/v1.2.0...main) for detailed changes.
+
+## 1.2.0 -- 2024-05-11
+
+* Reimplement orthoview as a class.
+* Color frames when crosshairs are on.
 
 ## 1.1.1 -- 2024-05-03
 
-* Reposition orthoview axes based on image size and spacing
-* Rename viewers module to allow reloading
-
+* Reposition orthoview axes based on image size and spacing.
+* Rename viewers module to allow reloading.
 
 ## 1.1.0 -- 2024-02-03
 
