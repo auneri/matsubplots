@@ -17,7 +17,7 @@ class OrthoView:
     colors = '#ff0000', '#00ff00', '#ffff00'
     indices = (1, 2), (0, 2), (0, 1)
 
-    def __init__(self, axs, image, spacing=(1,1,1), slab_thickness=None, slab_func=np.mean, reposition=True, **kwargs):
+    def __init__(self, axs, image, spacing=(1,1,1), reposition=True, **kwargs):
         axs = np.asarray(axs)
         image = np.asarray(image)
         spacing = np.asarray(spacing)
@@ -26,14 +26,10 @@ class OrthoView:
         bounds = []
         for i, ax in enumerate(axs.ravel()):
             j = image.shape[i] // 2
-            thickness = 1 if slab_thickness is None else round(slab_thickness / spacing[i])
-            j0 = np.maximum(j - thickness // 2, 0)
-            j1 = j - (-thickness // 2)
-            slice_ = slab_func(np.rollaxis(image, i)[j0:j1], axis=0)
             aspect = np.divide(*spacing[::-1][np.arange(spacing.size) != i])
             bounds.append([])
             bounds[-1].append(ax.get_position().bounds)
-            im = ax.imshow(slice_, aspect=aspect, **kwargs)
+            im = ax.imshow(np.rollaxis(image, i)[j], aspect=aspect, **kwargs)
             bounds[-1].append(ax.get_position().bounds)
             if hasattr(ax, 'cax'):
                 ax.get_figure().colorbar(im, cax=ax.cax)
@@ -59,11 +55,11 @@ class OrthoView:
             for spine in self.axs[i].spines.values():
                 spine.set_edgecolor(self.colors[i] if toggle else default_color)
 
-    def ijk(self, i=None, j=None, k=None, crosshairs=None):
+    def ijk(self, i=None, j=None, k=None, crosshairs=None, **kwargs):
         for index, value in enumerate((i, j, k)):
             if value is None:
                 value = self.image.shape[index] // 2
-            self._scroll(index, value)
+            self._scroll(index, value, **kwargs)
         if crosshairs is not None:
             self.crosshairs(crosshairs)
 
@@ -72,8 +68,17 @@ class OrthoView:
         ijk = [round(xyz[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
         self.ijk(*ijk, **kwargs)
 
-    def _scroll(self, index, value):
-        self.axs[index].images[0].set_data(np.rollaxis(self.image, index)[value])
+    def _scroll(self, index, value, thickness=None, func=np.max):
+        if thickness is None:
+            i0, i1 = value, value + 1
+        elif np.isinf(thickness):
+            i0, i1 = None, None
+        else:
+            thickness = round(thickness / self.spacing[::-1][index])
+            i0 = np.maximum(value - thickness // 2, 0)
+            i1 = value - (-thickness // 2)
+        slab = func(np.rollaxis(self.image, index)[i0:i1], axis=0)
+        self.axs[index].images[-1].set_data(slab)
         for i, alignment in zip(self.indices[index], self.alignments[index]):
             getattr(self._crosshairs[i][alignment], 'set_ydata' if alignment == 0 else 'set_xdata')([value, value])
 
