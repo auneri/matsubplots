@@ -5,7 +5,11 @@ and the format of this document is based on [Keep a Changelog](http://keepachang
 
 ## Unreleased
 
-See [individual commits](https://github.com/auneri/matsubplots/compare/v1.2.0...main) for detailed changes.
+See [individual commits](https://github.com/auneri/matsubplots/compare/v1.2.1...main) for detailed changes.
+
+## 1.2.1 -- 2024-05-30
+
+* Option to change slab size and method during scrolling.
 
 ## 1.2.0 -- 2024-05-11
 
