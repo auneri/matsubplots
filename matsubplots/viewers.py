@@ -47,6 +47,7 @@ class OrthoView:
         self._crosshairs = crosshairs
         if reposition:
             self._reposition(axs, bounds)
+        self.xyz()
 
     def crosshairs(self, toggle=None):
         if toggle is None:
@@ -58,13 +59,15 @@ class OrthoView:
             for spine in self.axs[i].spines.values():
                 spine.set_edgecolor(self.colors[i] if toggle else default_color)
 
-    def ijk(self, i, j, k, crosshairs=None):
+    def ijk(self, i=None, j=None, k=None, crosshairs=None):
         for index, value in enumerate((i, j, k)):
+            if value is None:
+                value = self.image.shape[index] // 2
             self._scroll(index, value)
         if crosshairs is not None:
             self.crosshairs(crosshairs)
 
-    def xyz(self, x, y, z, crosshairs=None):
+    def xyz(self, x=0, y=0, z=0, crosshairs=None):
         xyz = x, y, z
         ijk = [round(xyz[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
         self.ijk(*ijk, crosshairs=crosshairs)
