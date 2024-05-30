@@ -67,10 +67,10 @@ class OrthoView:
         if crosshairs is not None:
             self.crosshairs(crosshairs)
 
-    def xyz(self, x=0, y=0, z=0, crosshairs=None):
+    def xyz(self, x=0, y=0, z=0, **kwargs):
         xyz = x, y, z
         ijk = [round(xyz[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
-        self.ijk(*ijk, crosshairs=crosshairs)
+        self.ijk(*ijk, **kwargs)
 
     def _scroll(self, index, value):
         self.axs[index].images[0].set_data(np.rollaxis(self.image, index)[value])
