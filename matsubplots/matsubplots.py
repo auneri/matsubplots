@@ -10,14 +10,14 @@ def add_axes_inches(fig, size, offset=0, origin='middle center', **kwargs):
     if np.isscalar(size):
         size = np.repeat(size, 2)
     elif len(size) != 2:
-        raise NotImplementedError(size)
+        raise ValueError(size)
     if np.isscalar(offset):
         offset = np.repeat(offset, 2)
     elif len(offset) != 2:
-        raise NotImplementedError(offset)
+        raise ValueError(offset)
     origin = origin.split()
     if len(origin) != 2:
-        raise NotImplementedError(origin)
+        raise ValueError(origin)
     if origin[1] == 'left':
         left = offset[0]
     elif origin[1] == 'right':
@@ -25,7 +25,7 @@ def add_axes_inches(fig, size, offset=0, origin='middle center', **kwargs):
     elif origin[1] == 'center':
         left = (figsize[0] - size[0]) / 2 + offset[0]
     else:
-        raise NotImplementedError(origin[1])
+        raise ValueError(origin[1])
     if origin[0] == 'bottom':
         bottom = offset[1]
     elif origin[0] == 'top':
@@ -33,7 +33,7 @@ def add_axes_inches(fig, size, offset=0, origin='middle center', **kwargs):
     elif origin[0] == 'middle':
         bottom = (figsize[1] - size[1]) / 2 + offset[1]
     else:
-        raise NotImplementedError(origin[0])
+        raise ValueError(origin[0])
     width, height = size
     left /= figsize[0]
     bottom /= figsize[1]
