@@ -124,8 +124,15 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', **
             ax.set_xticklabels(())
         for ax in axs[:,1:].ravel():
             ax.set_yticklabels(())
-    elif label_mode:
-        raise NotImplementedError(label_mode)
+    elif label_mode == '1':
+        for ax in axs.ravel():
+            if ax is not axs[-1,0]:
+                ax.set_xticklabels(())
+                ax.set_yticklabels(())
+    elif label_mode == 'all':
+        pass
+    else:
+        raise ValueError(f'Invalid label_mode: "{label_mode}". Use "L", "1", or "all".')
     if cbar_mode == 'edge':
         axs, caxs = axs[:,:-1], axs[:,-1]
         for ax1, cax in zip(axs, caxs):
