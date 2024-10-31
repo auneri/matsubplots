@@ -106,8 +106,11 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', **
         pad = np.repeat(pad, 2)
     shape, size, pad = shape[::-1], size[::-1], pad[::-1]
     cbar_mode = kwargs.pop('cbar_mode', None)
+    cbar_pad = kwargs.pop('cbar_pad', pad[0])
     cbar_size = kwargs.pop('cbar_size', size[0] * 0.1)
-    if cbar_mode == 'edge':
+    if cbar_mode == 'each':
+        shape = shape[0] * 2, shape[1]
+    elif cbar_mode in ('edge', 'single'):
         shape = shape[0] + 1, shape[1]
     figsize = [size[x] * shape[x] + pad[x] * (shape[x] + 1) for x in range(2)]
     with plt.ioff() if ioff else contextlib.nullcontext():
@@ -133,14 +136,47 @@ def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', **
         pass
     else:
         raise ValueError(f'Invalid label_mode: "{label_mode}". Use "L", "1", or "all".')
-    if cbar_mode == 'edge':
+    if cbar_mode == 'each':
+        axs, caxs = axs[:,::2], axs[:,1::2]
+        for ax1, cax1 in zip(axs, caxs):
+            for i, (ax2, cax2) in enumerate(zip(ax1, cax1)):
+                ax2.set_position((
+                    ax2.get_position().bounds[0] - (cax2.get_position().bounds[2] - cbar_size / figsize[0]) * i,
+                    ax2.get_position().bounds[1],
+                    ax2.get_position().bounds[2],
+                    ax2.get_position().bounds[3]))
+                cax2.set_position((
+                    ax2.get_position().bounds[0] + ax2.get_position().bounds[2] + cbar_pad / figsize[0],
+                    cax2.get_position().bounds[1],
+                    cbar_size / figsize[0],
+                    cax2.get_position().bounds[3]))
+                ax2.cax = cax2
+    elif cbar_mode == 'single':
+        axs, caxs = axs[:,:-1], axs[:,-1]
+        caxs[-1].set_position((
+            axs[-1,-1].get_position().bounds[0] + axs[-1,-1].get_position().bounds[2] + cbar_pad / figsize[0],
+            caxs[-1].get_position().bounds[1],
+            cbar_size / figsize[0],
+            sum(x.get_position().bounds[3] for x in caxs) + (len(caxs) - 1) * pad[1] / figsize[1]))
+        for ax1 in axs:
+            for ax2 in ax1:
+                ax2.cax = caxs[-1]
+        for cax in caxs[:-1]:
+            fig.delaxes(cax)
+    elif cbar_mode == 'edge':
         axs, caxs = axs[:,:-1], axs[:,-1]
         for ax1, cax in zip(axs, caxs):
-            cax.set_position([cbar_size / figsize[0] if i == 2 else x for i, x in enumerate(cax.get_position().bounds)])
+            cax.set_position((
+                ax1[-1].get_position().bounds[0] + ax1[-1].get_position().bounds[2] + cbar_pad / figsize[0],
+                cax.get_position().bounds[1],
+                cbar_size / figsize[0],
+                cax.get_position().bounds[3]))
             for ax2 in ax1:
                 ax2.cax = cax
-    elif cbar_mode:
-        raise NotImplementedError(cbar_mode)
+    elif cbar_mode is None:
+        pass
+    else:
+        raise ValueError(f'Invalid cbar_mode: "{cbar_mode}". Use "each", "single", "edge", or None.')
     if shape_scalar:
         axs = axs[0,0] if axs.size == 1 else np.squeeze(axs)
     return fig, axs
