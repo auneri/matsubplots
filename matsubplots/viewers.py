@@ -13,9 +13,9 @@ def orthoview(*args, backend=None, **kwargs):
 
 class OrthoView:
 
-    alignments = (0, 0), (0, 1), (1, 1)
-    colors = '#ff0000', '#00ff00', '#ffff00'
-    indices = (1, 2), (0, 2), (0, 1)
+    _alignments = (0, 0), (0, 1), (1, 1)
+    _colors = '#ff0000', '#00ff00', '#ffff00'
+    _indices = (1, 2), (0, 2), (0, 1)
 
     def __init__(self, axs, image, spacing=(1,1,1), reposition=True, **kwargs):
         axs = np.asarray(axs)
@@ -34,9 +34,9 @@ class OrthoView:
             if hasattr(ax, 'cax'):
                 ax.get_figure().colorbar(im, cax=ax.cax)
         crosshairs = [[
-            axs[i].axhline(image.shape[x]//2, lw=1, c=self.colors[x], visible=False),
-            axs[i].axvline(image.shape[y]//2, lw=1, c=self.colors[y], visible=False)]
-            for i, (x,y) in enumerate(self.indices)]
+            axs[i].axhline(image.shape[x]//2, lw=1, c=self._colors[x], visible=False),
+            axs[i].axvline(image.shape[y]//2, lw=1, c=self._colors[y], visible=False)]
+            for i, (x,y) in enumerate(self._indices)]
         self.axs = axs
         self.image = image
         self.spacing = spacing
@@ -53,7 +53,7 @@ class OrthoView:
             for line in crosshairs:
                 line.set_visible(toggle)
             for spine in self.axs[i].spines.values():
-                spine.set_edgecolor(self.colors[i] if toggle else default_color)
+                spine.set_edgecolor(self._colors[i] if toggle else default_color)
 
     def ijk(self, i=None, j=None, k=None, crosshairs=None, **kwargs):
         for index, value in enumerate((i, j, k)):
@@ -79,7 +79,7 @@ class OrthoView:
             i1 = value - (-thickness // 2)
         slab = func(np.rollaxis(self.image, index)[i0:i1], axis=0)
         self.axs[index].images[-1].set_data(slab)
-        for i, alignment in zip(self.indices[index], self.alignments[index]):
+        for i, alignment in zip(self._indices[index], self._alignments[index]):
             getattr(self._crosshairs[i][alignment], 'set_ydata' if alignment == 0 else 'set_xdata')([value, value])
 
     @staticmethod
@@ -158,7 +158,7 @@ class OrthoViewInteractive(OrthoView):
     def on_motion(self, event):
         for i, ax in enumerate(self.axs):
             if self.pressed[0] is not None and event.inaxes is ax:
-                for j, index in enumerate(self.indices[i]):
+                for j, index in enumerate(self._indices[i]):
                     self._scroll(index, round(getattr(event, 'ydata' if j == 0 else 'xdata')))
             elif self.pressed[1] is not None and event.inaxes is ax:
                 vmin, vmax = self.axs[0].images[0].get_clim()
