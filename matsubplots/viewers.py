@@ -33,52 +33,49 @@ class OrthoView:
             bounds[-1].append(ax.get_position().bounds)
             if hasattr(ax, 'cax'):
                 ax.get_figure().colorbar(im, cax=ax.cax)
-        crosshairs = [[
+        self._crosshairs = [[
             axs[i].axhline(image.shape[x]//2, lw=1, c=self._colors[x], visible=False),
             axs[i].axvline(image.shape[y]//2, lw=1, c=self._colors[y], visible=False)]
             for i, (x,y) in enumerate(self._indices)]
+        self._ijk = [None, None, None]
         self.axs = axs
         self.image = image
         self.spacing = spacing
-        self._crosshairs = crosshairs
         if reposition:
             self._reposition(axs, bounds)
-        self.xyz()
+        self.scroll(position=(0,0,0), physical=True)
 
-    def crosshairs(self, toggle=None):
-        if toggle is None:
-            toggle = not self._crosshairs[0][0].get_visible()
-        default_color = self.axs[0].get_xaxis().get_label().get_color()
-        for i, crosshairs in enumerate(self._crosshairs):
-            for line in crosshairs:
-                line.set_visible(toggle)
-            for spine in self.axs[i].spines.values():
-                spine.set_edgecolor(self._colors[i] if toggle else default_color)
-
-    def ijk(self, i=None, j=None, k=None, crosshairs=None, **kwargs):
-        for index, value in enumerate((i, j, k)):
-            if value is None:
-                value = self.image.shape[index] // 2
-            self._scroll(index, value, **kwargs)
+    def scroll(self, position=None, physical=False, crosshairs=None, slab_size=None, slab_func=np.mean):
+        if physical:
+            if position is not None:
+                position = [round(position[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
+            if slab_size is not None:
+                if np.isscalar(slab_size):
+                    slab_size = np.repeat(slab_size, 3)
+                slab_size = [np.round(slab_size[i] / self.spacing[::-1][i]) for i in range(3)]
+        if position is None:
+            position = self._ijk
+        if slab_size is None:
+            slab_size = 1, 1, 1
+        for i, _ in enumerate(position):
+            self._scrolli(i, position[i], slab_size[i], slab_func)
         if crosshairs is not None:
-            self.crosshairs(crosshairs)
+            default_color = self.axs[0].get_xaxis().get_label().get_color()
+            for i, crosshair in enumerate(self._crosshairs):
+                for line in crosshair:
+                    line.set_visible(crosshairs)
+                for spine in self.axs[i].spines.values():
+                    spine.set_edgecolor(self._colors[i] if crosshairs else default_color)
 
-    def xyz(self, x=0, y=0, z=0, **kwargs):
-        xyz = x, y, z
-        ijk = [round(xyz[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
-        self.ijk(*ijk, **kwargs)
-
-    def _scroll(self, index, value, thickness=None, func=np.max):
-        if thickness is None:
-            i0, i1 = value, value + 1
-        elif np.isinf(thickness):
+    def _scrolli(self, index, value, slab_size=1, slab_func=np.mean):
+        if np.isinf(slab_size):
             i0, i1 = None, None
         else:
-            thickness = round(thickness / self.spacing[::-1][index])
-            i0 = np.maximum(value - thickness // 2, 0)
-            i1 = value - (-thickness // 2)
-        slab = func(np.rollaxis(self.image, index)[i0:i1], axis=0)
+            i0 = np.maximum(value - round(slab_size) // 2, 0)
+            i1 = value - (-round(slab_size) // 2)
+        slab = slab_func(np.rollaxis(self.image, index)[i0:i1], axis=0)
         self.axs[index].images[-1].set_data(slab)
+        self._ijk[index] = value
         for i, alignment in zip(self._indices[index], self._alignments[index]):
             getattr(self._crosshairs[i][alignment], 'set_ydata' if alignment == 0 else 'set_xdata')([value, value])
 
@@ -145,7 +142,7 @@ class OrthoViewInteractive(OrthoView):
     def on_press(self, event):
         if event.inaxes in self.axs:
             if event.dblclick:
-                self.crosshairs()
+                self.scroll(crosshairs=not self._crosshairs[0][0].get_visible())
             elif event.button == MouseButton.LEFT:
                 self.pressed[0] = event
             elif event.button == MouseButton.RIGHT:
@@ -159,7 +156,7 @@ class OrthoViewInteractive(OrthoView):
         for i, ax in enumerate(self.axs):
             if self.pressed[0] is not None and event.inaxes is ax:
                 for j, index in enumerate(self._indices[i]):
-                    self._scroll(index, round(getattr(event, 'ydata' if j == 0 else 'xdata')))
+                    self._scrolli(index, round(getattr(event, 'ydata' if j == 0 else 'xdata')))
             elif self.pressed[1] is not None and event.inaxes is ax:
                 vmin, vmax = self.axs[0].images[0].get_clim()
                 win = vmax - vmin
@@ -196,9 +193,9 @@ class OrthoViewStatic(OrthoView):
                 for ax in axs:
                     ax.images[0].set_clim(change['new'])
             elif change['owner'] is self.wcrosshairs:
-                self.crosshairs(change['new'])
+                self.scroll(crosshairs=change['new'])
             elif change['owner'] in self.wslices:
-                self._scroll(self.wslices.index(change['owner']), change['new'])
+                self._scrolli(self.wslices.index(change['owner']), change['new'])
             display(axs[0].get_figure())
 
         for widget in self.wslices + [self.wclim, self.wcrosshairs]:
@@ -207,10 +204,6 @@ class OrthoViewStatic(OrthoView):
     def _ipython_display_(self):
         from IPython.display import display
         display(self.widget())
-
-    def scroll(self, i, j, k):
-        for index, value in enumerate((i, j, k)):
-            self.wslices[index].value = value
 
     def widget(self):
         import ipywidgets
