@@ -2,7 +2,7 @@
 
 1. Create a new tag
 
-    * Update `__version__` and `CHANGELOG` with commit message "Release vX.X.X"
+    * Update `version` and `CHANGELOG` with commit message "Release vX.X.X"
     * Add tag with message "Release vX.X.X"
     * Push changes to [matsubplots](https://github.com/auneri/matsubplots)
 
@@ -22,4 +22,4 @@
 
     * If a pull request is not automatically triggered within 24 hr of the PyPI release:
     * Make a pull request to [matsubplots-feedstock](https://github.com/conda-forge/matsubplots-feedstock)
-    * Update `version` (should match `__version__`) and `hash` (should match PyPI) in `recipe/meta.yaml`
+    * Update `version` and `hash` (should match PyPI) in `recipe/meta.yaml`
