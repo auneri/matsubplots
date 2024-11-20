@@ -18,7 +18,7 @@ classifiers = [
 dependencies = [
     "matplotlib",
     "numpy"]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 
 [project.optional-dependencies]
 flake8 = [
