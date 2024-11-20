@@ -10,12 +10,11 @@
 
     ```shell
     git clone --depth 1 --branch vX.X.X https://github.com/auneri/matsubplots src
-    conda create --yes --prefix ./env python=3.10 setuptools
+    conda create --yes --prefix ./env --channel conda-forge python=3.10 build twine
     conda activate ./env
     cd src
-    python setup.py sdist bdist_wheel
-    conda activate base
-    twine upload dist/*
+    python -m build
+    python -m twine upload dist/*
     ```
 
 3. Upload new package to conda-forge
