@@ -17,8 +17,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
         with:
+          activate-environment: env
           auto-update-conda: true
-          channel-priority: strict
           python-version: ${{ matrix.python-version }}
-      - run: conda env create --yes --name test
-      - run: conda run --name test --no-capture-output flake8
+      - run: |
+          python -m pip install .[flake8]
+          python -m flake8 .
