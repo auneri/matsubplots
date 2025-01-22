@@ -5,7 +5,13 @@ and the format of this document is based on [Keep a Changelog](http://keepachang
 
 ## Unreleased
 
-See [individual commits](https://github.com/auneri/matsubplots/compare/v1.3.0...main) for detailed changes.
+See [individual commits](https://github.com/auneri/matsubplots/compare/v1.3.1...main) for detailed changes.
+
+## 1.3.1 -- 2025-01-21
+
+* Deploy project using GitHub actions.
+* Show example notebook output.
+* Fix missing flake8 dependencies.
 
 ## 1.3.0 -- 2024-10-19
 
