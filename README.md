@@ -12,3 +12,10 @@ Better subplots for [matplotlib](https://matplotlib.org).
 Install using `pip install matsubplots` or `conda install -c conda-forge matsubplots`.
 
 See [example notebooks](https://github.com/auneri/matsubplots/tree/main/examples) for basic instructions.
+
+## Releasing a new version
+
+1. Update `project.version` in `pyproject.toml` and `CHANGELOG` with commit message "Release vX.X.X".
+2. Add tag vX.X.X with message "Release vX.X.X".
+3. Push the tag and create a new release on [matsubplots](https://github.com/auneri/matsubplots).
+4. Merge the auto-generated pull request on [matsubplots-feedstock](https://github.com/conda-forge/matsubplots-feedstock).
