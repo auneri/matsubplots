@@ -45,7 +45,7 @@ class OrthoView:
             self._reposition(axs, bounds)
         self.scroll(position=(0,0,0))
 
-    def scroll(self, position=None, crosshairs=None, slab_size=None, slab_func=np.mean, physical_units=True):
+    def scroll(self, position=None, crosshairs=None, zoom=1, slab_size=None, slab_func=np.mean, physical_units=True):
         if physical_units:
             if position is not None:
                 position = [round(position[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
@@ -59,6 +59,16 @@ class OrthoView:
             slab_size = 1, 1, 1
         for i, _ in enumerate(position):
             self._scrolli(i, position[i], slab_size[i], slab_func)
+            image = self.axs[i].images[-1]
+            ycenter, xcenter = [position[x] for x in range(3) if x != i]
+            ysize, xsize = [x / 2 / zoom for x in image.get_shape()]
+            self.axs[i].set_xlim(
+                (xcenter - xsize, xcenter + xsize))
+            self.axs[i].set_ylim(
+                (ycenter - ysize, ycenter + ysize)
+                if image.origin == 'lower' else
+                (ycenter + ysize, ycenter - ysize))
+
         if crosshairs is not None:
             default_color = self.axs[0].get_xaxis().get_label().get_color()
             for i, crosshair in enumerate(self._crosshairs):
