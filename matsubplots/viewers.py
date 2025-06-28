@@ -43,10 +43,10 @@ class OrthoView:
         self.spacing = spacing
         if reposition:
             self._reposition(axs, bounds)
-        self.scroll(position=(0,0,0), physical=True)
+        self.scroll(position=(0,0,0))
 
-    def scroll(self, position=None, physical=False, crosshairs=None, slab_size=None, slab_func=np.mean):
-        if physical:
+    def scroll(self, position=None, crosshairs=None, slab_size=None, slab_func=np.mean, physical_units=True):
+        if physical_units:
             if position is not None:
                 position = [round(position[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
             if slab_size is not None:
