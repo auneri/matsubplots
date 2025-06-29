@@ -51,20 +51,20 @@ class OrthoView:
                 position = [round(position[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
             if roi is not None:
                 if np.isscalar(roi):
-                    roi = np.repeat(roi, 3)
+                    roi = roi, roi, roi
                 roi = [roi[::-1][i] / self.spacing[::-1][i] for i in range(3)]
             if slab_size is not None:
                 if np.isscalar(slab_size):
-                    slab_size = np.repeat(slab_size, 3)
+                    slab_size = slab_size, slab_size, slab_size
                 slab_size = [np.round(slab_size[i] / self.spacing[::-1][i]) for i in range(3)]
         if position is None:
             position = self._ijk
         if np.isscalar(roi):
-            roi = np.repeat(roi, 3)
+            roi = roi, roi, roi
         if slab_size is None:
             slab_size = 1, 1, 1
         elif np.isscalar(slab_size):
-            slab_size = np.repeat(slab_size, 3)
+            slab_size = slab_size, slab_size, slab_size
         for i, _ in enumerate(position):
             self._scrolli(i, position[i], slab_size[i], slab_func)
             if roi is not None:

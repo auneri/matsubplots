@@ -7,15 +7,13 @@ from mpl_toolkits.axes_grid1 import Grid, ImageGrid
 
 def add_axes_inches(fig, size, offset=0, origin='middle center', **kwargs):
     figsize = fig.get_size_inches()
-    if np.isscalar(size):
-        size = np.repeat(size, 2)
-    elif len(size) != 2:
-        raise ValueError(size)
-    if np.isscalar(offset):
-        offset = np.repeat(offset, 2)
-    elif len(offset) != 2:
-        raise ValueError(offset)
+    size = (size, size) if np.isscalar(size) else size
+    offset = (offset, offset) if np.isscalar(offset) else offset
     origin = origin.split()
+    if len(size) != 2:
+        raise ValueError(size)
+    if len(offset) != 2:
+        raise ValueError(offset)
     if len(origin) != 2:
         raise ValueError(origin)
     if origin[1] == 'left':
@@ -45,12 +43,9 @@ def add_axes_inches(fig, size, offset=0, origin='middle center', **kwargs):
 def grid(shape=1, size=3, pad=0, close=False, ioff=False, image_grid=False, return_grid=False, **kwargs):
     """Extend mpl_toolkits.axes_grid1.Grid."""
     shape_scalar = np.isscalar(shape)
-    if shape_scalar:
-        shape = 1, shape
-    if np.isscalar(size):
-        size = np.repeat(size, 2)
-    if np.isscalar(pad):
-        pad = np.repeat(pad, 2)
+    shape = (1, shape) if shape_scalar else shape
+    size = (size, size) if np.isscalar(size) else size
+    pad = (pad, pad) if np.isscalar(pad) else pad
     shape, size, pad = shape[::-1], size[::-1], pad[::-1]
     xticks = kwargs.pop('xticks', None)
     yticks = kwargs.pop('yticks', None)
@@ -98,12 +93,9 @@ def imagegrid(*args, **kwargs):
 def subplots(shape=1, size=3, pad=0, close=False, ioff=False, label_mode='L', **kwargs):
     """Extend matplotlib.pyplot.subplots."""
     shape_scalar = np.isscalar(shape)
-    if shape_scalar:
-        shape = 1, shape
-    if np.isscalar(size):
-        size = np.repeat(size, 2)
-    if np.isscalar(pad):
-        pad = np.repeat(pad, 2)
+    shape = (1, shape) if shape_scalar else shape
+    size = (size, size) if np.isscalar(size) else size
+    pad = (pad, pad) if np.isscalar(pad) else pad
     shape, size, pad = shape[::-1], size[::-1], pad[::-1]
     cbar_mode = kwargs.pop('cbar_mode', None)
     cbar_pad = kwargs.pop('cbar_pad', pad[0])
