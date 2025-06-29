@@ -45,30 +45,37 @@ class OrthoView:
             self._reposition(axs, bounds)
         self.scroll(position=(0,0,0))
 
-    def scroll(self, position=None, crosshairs=None, zoom=1, slab_size=None, slab_func=np.mean, physical_units=True):
+    def scroll(self, position=None, crosshairs=None, roi=None, slab_size=None, slab_func=np.mean, physical_units=True):
         if physical_units:
             if position is not None:
                 position = [round(position[::-1][i] / self.spacing[::-1][i] + (self.image.shape[i] - 1) / 2) for i in range(3)]
+            if roi is not None:
+                if np.isscalar(roi):
+                    roi = np.repeat(roi, 3)
+                roi = [roi[::-1][i] / self.spacing[::-1][i] for i in range(3)]
             if slab_size is not None:
                 if np.isscalar(slab_size):
                     slab_size = np.repeat(slab_size, 3)
                 slab_size = [np.round(slab_size[i] / self.spacing[::-1][i]) for i in range(3)]
         if position is None:
             position = self._ijk
+        if np.isscalar(roi):
+            roi = np.repeat(roi, 3)
         if slab_size is None:
             slab_size = 1, 1, 1
+        elif np.isscalar(slab_size):
+            slab_size = np.repeat(slab_size, 3)
         for i, _ in enumerate(position):
             self._scrolli(i, position[i], slab_size[i], slab_func)
-            image = self.axs[i].images[-1]
-            ycenter, xcenter = [position[x] for x in range(3) if x != i]
-            ysize, xsize = [x / 2 / zoom for x in image.get_shape()]
-            self.axs[i].set_xlim(
-                (xcenter - xsize, xcenter + xsize))
-            self.axs[i].set_ylim(
-                (ycenter - ysize, ycenter + ysize)
-                if image.origin == 'lower' else
-                (ycenter + ysize, ycenter - ysize))
-
+            if roi is not None:
+                ycenter, xcenter = [position[x] for x in self._indices[i]]
+                ysize, xsize = [roi[x] / 2 for x in self._indices[i]]
+                self.axs[i].set_xlim(
+                    (xcenter - xsize, xcenter + xsize))
+                self.axs[i].set_ylim(
+                    (ycenter - ysize, ycenter + ysize)
+                    if self.axs[i].images[-1].origin == 'lower' else
+                    (ycenter + ysize, ycenter - ysize))
         if crosshairs is not None:
             default_color = self.axs[0].get_xaxis().get_label().get_color()
             for i, crosshair in enumerate(self._crosshairs):
