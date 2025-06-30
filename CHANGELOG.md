@@ -5,7 +5,13 @@ and the format of this document is based on [Keep a Changelog](http://keepachang
 
 ## Unreleased
 
-See [individual commits](https://github.com/auneri/matsubplots/compare/v1.3.1...main) for detailed changes.
+See [individual commits](https://github.com/auneri/matsubplots/compare/v1.4.0...main) for detailed changes.
+
+## 1.4.0 -- 2025-06-30
+
+* Demonstrate scroll method in notebook.
+* Use physical units by default when scrolling.
+* New option to specify ROI when scrolling.
 
 ## 1.3.1 -- 2025-01-21
 
